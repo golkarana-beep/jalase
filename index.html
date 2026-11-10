@@ -151,6 +151,31 @@
 </head>
 <body class="min-h-screen flex flex-col justify-between relative selection:bg-brand-500 selection:text-white pb-16 sm:pb-0">
 
+    <!-- صفحه ورود با رمز عبور -->
+    <div id="loginScreen" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/90 backdrop-blur-md p-4">
+        <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl p-6 sm:p-8 border border-slate-100 animate-fade-in">
+            <div class="text-center mb-6">
+                <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-tr from-brand-600 to-indigo-500 flex items-center justify-center text-white shadow-lg shadow-brand-500/30 mb-4">
+                    <i class="fa-solid fa-lock text-2xl"></i>
+                </div>
+                <h2 class="text-lg font-extrabold text-slate-800">ورود به سیستم</h2>
+                <p class="text-xs text-slate-500 mt-1">مدیریت جلسات هفتگی</p>
+            </div>
+            <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">رمز عبور</label>
+                    <input type="password" id="passwordInput" required placeholder="رمز عبور را وارد کنید"
+                           class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 transition text-center tracking-widest"
+                           autocomplete="current-password">
+                </div>
+                <p id="loginError" class="text-xs text-rose-600 font-bold text-center hidden">رمز عبور اشتباه است</p>
+                <button type="submit" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-2xl font-bold text-sm shadow-md shadow-brand-600/25 transition active:scale-[0.98]">
+                    ورود
+                </button>
+            </form>
+        </div>
+    </div>
+
     <!-- Header Section -->
     <header class="glass-panel sticky top-0 z-30 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
@@ -515,6 +540,7 @@
         let isOnline = navigator.onLine;
 
         window.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
             initTimeSelectOptions();
             loadMeetings();
             initSyncKey();
@@ -882,7 +908,7 @@
         }
 
         // Modal Functions
-        function openModal(isEdit = false) {
+        function openModal(isEdit = false, presetDay = null) {
             const modal = document.getElementById('meetingModal');
             document.getElementById('modalTitle').textContent = isEdit ? 'ویرایش جلسه' : 'افزودن جلسه جدید';
             if (!isEdit) {
@@ -892,20 +918,52 @@
                 document.getElementById('startMin').value = '00';
                 document.getElementById('endHour').value = '10';
                 document.getElementById('endMin').value = '00';
+
+                // اگر روز مشخص شده باشد، بعد از reset مقداردهی کن
+                if (presetDay) {
+                    document.getElementById('dayInput').value = presetDay;
+                    document.getElementById('modalTitle').textContent = `افزودن جلسه (${presetDay})`;
+                }
                 autoFillDateByDay();
             }
             modal.classList.remove('hidden');
         }
 
         function openModalForDay(dayName) {
-            document.getElementById('dayInput').value = dayName;
-            autoFillDateByDay();
-            openModal(false);
-            document.getElementById('modalTitle').textContent = `افزودن جلسه (${dayName})`;
+            // روز و تاریخ همان روز انتخاب‌شده پر می‌شود
+            openModal(false, dayName);
         }
 
         function closeModal() {
             document.getElementById('meetingModal').classList.add('hidden');
+        }
+
+        // ========== ورود با رمز عبور ==========
+        const APP_PASSWORD = '1357';
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const input = document.getElementById('passwordInput').value.trim();
+            const errorEl = document.getElementById('loginError');
+
+            if (input === APP_PASSWORD) {
+                sessionStorage.setItem('weekly_meetings_auth', '1');
+                document.getElementById('loginScreen').classList.add('hidden');
+                errorEl.classList.add('hidden');
+            } else {
+                errorEl.classList.remove('hidden');
+                document.getElementById('passwordInput').value = '';
+                document.getElementById('passwordInput').focus();
+            }
+        }
+
+        function checkAuth() {
+            if (sessionStorage.getItem('weekly_meetings_auth') === '1') {
+                document.getElementById('loginScreen').classList.add('hidden');
+            } else {
+                document.getElementById('loginScreen').classList.remove('hidden');
+                setTimeout(() => document.getElementById('passwordInput')?.focus(), 100);
+            }
         }
 
         // Form Submission Handler
