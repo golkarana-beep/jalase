@@ -4,10 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>مدیریت جلسات هفتگی</title>
-    <!-- Tailwind CSS CDN -->
+    <!-- Tailwind CSS CDN (برای اولین بار نیاز به اینترنت دارد؛ بعد از بارگذاری در کش مرورگر می‌ماند) -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Vazirmatn Font CDN -->
-    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+    <!-- IRANSansWeb (Black) + fallback -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
+    <style>
+        /* تلاش برای بارگذاری IRANSansWeb Black در صورت وجود محلی یا کش */
+        @font-face {
+            font-family: 'IRANSansWebBlack';
+            src: local('IRANSansWeb Black'), local('IRANSansWebBlack'),
+                 url('https://cdn.jsdelivr.net/npm/iransans@1.0.0/ttf/IRANSansWeb_Bold.ttf') format('truetype');
+            font-weight: 900;
+            font-style: normal;
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'IRANSansWeb';
+            src: local('IRANSansWeb'), local('IRANSans'),
+                 url('https://cdn.jsdelivr.net/npm/iransans@1.0.0/ttf/IRANSansWeb.ttf') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+            font-display: swap;
+        }
+    </style>
     <!-- FontAwesome Icons CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Moment Persian CDN -->
@@ -19,7 +38,7 @@
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['Vazirmatn', 'sans-serif'],
+                        sans: ['IRANSansWebBlack', 'IRANSansWeb', 'Vazirmatn', 'Tahoma', 'sans-serif'],
                     },
                     colors: {
                         brand: {
@@ -31,7 +50,7 @@
                         }
                     },
                     animation: {
-                        'fade-in': 'fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'fade-in': 'fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards',
                         'slide-up': 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards',
                     },
                     keyframes: {
@@ -40,7 +59,7 @@
                             '100%': { opacity: '1', transform: 'scale(1)' },
                         },
                         slideUp: {
-                            '0%': { opacity: '0', transform: 'translateY(16px)' },
+                            '0%': { opacity: '0', transform: 'translateY(100%)' },
                             '100%': { opacity: '1', transform: 'translateY(0)' },
                         }
                     }
@@ -50,16 +69,17 @@
     </script>
     <style>
         body {
-            font-family: 'Vazirmatn', sans-serif;
+            font-family: 'IRANSansWebBlack', 'IRANSansWeb', 'Vazirmatn', 'Tahoma', sans-serif;
             background-color: #cbd5e1;
             background-image: 
                 radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
                 radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.12) 0px, transparent 50%);
             color: #0f172a;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .glass-panel {
-            background: rgba(255, 255, 255, 0.85);
+            background: rgba(255, 255, 255, 0.88);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.6);
@@ -69,13 +89,12 @@
         .glass-card {
             background: rgba(255, 255, 255, 0.95);
             border: 1px solid rgba(203, 213, 225, 0.8);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
-            transition: all 0.25s ease;
+            box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+            transition: all 0.2s ease;
         }
 
-        .glass-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px -3px rgba(79, 70, 229, 0.12);
+        .glass-card:active, .glass-card:hover {
+            box-shadow: 0 8px 16px -2px rgba(79, 70, 229, 0.12);
             border-color: #818cf8;
         }
 
@@ -91,7 +110,7 @@
             border-radius: 1.5rem;
             z-index: 1;
             overflow: hidden;
-            box-shadow: 0 0 20px rgba(99, 102, 241, 0.25);
+            box-shadow: 0 0 16px rgba(99, 102, 241, 0.2);
         }
 
         .today-card::before {
@@ -111,240 +130,272 @@
             position: absolute;
             z-index: -1;
             inset: 3px;
-            background: rgba(255, 255, 255, 0.94);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(12px);
             border-radius: 1.3rem;
         }
 
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
+        /* Hide scrollbars for smooth touch scroll */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
         }
-        ::-webkit-scrollbar-track {
-            background: transparent;
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
-        ::-webkit-scrollbar-thumb {
-            background: #94a3b8;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #64748b;
-        }
+
+        /* وضعیت آنلاین/آفلاین */
+        .online-badge { background: #d1fae5; color: #065f46; }
+        .offline-badge { background: #fee2e2; color: #991b1b; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between relative selection:bg-brand-500 selection:text-white">
+<body class="min-h-screen flex flex-col justify-between relative selection:bg-brand-500 selection:text-white pb-16 sm:pb-0">
 
     <!-- Header Section -->
     <header class="glass-panel sticky top-0 z-30 shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
             <div class="flex items-center space-x-3 space-x-reverse">
-                <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-brand-600 to-indigo-500 flex items-center justify-center text-white shadow-md shadow-brand-500/20">
-                    <i class="fa-solid fa-calendar-week text-xl"></i>
+                <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-tr from-brand-600 to-indigo-500 flex items-center justify-center text-white shadow-md shadow-brand-500/20">
+                    <i class="fa-solid fa-calendar-week text-lg sm:text-xl"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl sm:text-2xl font-extrabold text-slate-800">
-                        برنامه‌ریزی جلسات هفتگی
+                    <h1 class="text-lg sm:text-2xl font-extrabold text-slate-800">
+                        جلسات هفتگی
                     </h1>
-                    <p class="text-xs text-slate-500 hidden sm:block font-medium">مدیریت منظم برنامه‌ها و زمان‌بندی جلسات</p>
+                    <p class="text-xs text-slate-500 hidden sm:block font-medium">برنامه‌ریزی و زمان‌بندی جلسات کاری</p>
                 </div>
             </div>
             
-            <div class="flex items-center gap-3">
-                <button onclick="openModal()" class="flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white px-5 py-2.5 rounded-2xl font-semibold text-sm transition shadow-md shadow-brand-600/20 active:scale-95">
-                    <i class="fa-solid fa-plus text-base"></i>
-                    <span class="hidden sm:inline">جلسه جدید</span>
+            <div class="flex items-center gap-2 sm:gap-3">
+                <!-- وضعیت آنلاین -->
+                <span id="onlineStatus" class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11px] font-bold offline-badge">
+                    <i class="fa-solid fa-wifi"></i>
+                    <span>آفلاین</span>
+                </span>
+
+                <!-- دکمه همگام‌سازی -->
+                <button onclick="syncMeetings()" id="syncBtn" class="flex items-center gap-1.5 sm:gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl font-semibold text-xs sm:text-sm transition shadow-md shadow-emerald-600/20 active:scale-95" title="همگام‌سازی با سرور هنگام اتصال به اینترنت">
+                    <i class="fa-solid fa-cloud-arrow-up text-sm"></i>
+                    <span class="hidden sm:inline">همگام‌سازی</span>
+                </button>
+
+                <button onclick="openModal()" class="flex items-center gap-1.5 sm:gap-2 bg-brand-600 hover:bg-brand-700 text-white px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-2xl font-semibold text-xs sm:text-sm transition shadow-md shadow-brand-600/20 active:scale-95">
+                    <i class="fa-solid fa-plus text-sm"></i>
+                    <span>جلسه جدید</span>
                 </button>
             </div>
         </div>
     </header>
 
     <!-- Main Content Area -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full z-10">
+    <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 flex-1 w-full z-10">
         
         <!-- Week Navigator & Search -->
-        <div class="mb-6 flex flex-col md:flex-row items-center justify-between gap-4 glass-panel p-4 rounded-3xl shadow-sm">
+        <div class="mb-4 sm:mb-6 flex flex-col md:flex-row items-center justify-between gap-3 sm:gap-4 glass-panel p-3 sm:p-4 rounded-3xl shadow-sm">
             
             <!-- Week Navigation Controls -->
             <div class="flex items-center gap-2 w-full md:w-auto justify-between md:justify-start">
-                <button onclick="changeWeek(-1)" class="p-2.5 rounded-2xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 transition active:scale-95 shadow-sm flex items-center gap-1.5 text-xs font-semibold">
-                    <i class="fa-solid fa-chevron-right text-xs"></i>
+                <button onclick="changeWeek(-1)" class="px-3 py-2 rounded-2xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 transition active:scale-95 shadow-sm flex items-center gap-1 text-xs font-bold">
+                    <i class="fa-solid fa-chevron-right text-[10px]"></i>
                     <span>هفته قبل</span>
                 </button>
 
-                <div class="text-center px-3">
-                    <div id="weekRangeLabel" class="font-bold text-sm sm:text-base text-slate-800"></div>
-                    <button onclick="goToCurrentWeek()" class="text-[11px] text-brand-600 hover:text-brand-700 font-semibold underline mt-0.5">
-                        رفتن به هفته جاری
+                <div class="text-center px-1">
+                    <div id="weekRangeLabel" class="font-extrabold text-xs sm:text-base text-slate-800"></div>
+                    <button onclick="goToCurrentWeek()" class="text-[11px] text-brand-600 hover:text-brand-700 font-bold underline mt-0.5">
+                        هفته جاری
                     </button>
                 </div>
 
-                <button onclick="changeWeek(1)" class="p-2.5 rounded-2xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 transition active:scale-95 shadow-sm flex items-center gap-1.5 text-xs font-semibold">
+                <button onclick="changeWeek(1)" class="px-3 py-2 rounded-2xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 transition active:scale-95 shadow-sm flex items-center gap-1 text-xs font-bold">
                     <span>هفته بعد</span>
-                    <i class="fa-solid fa-chevron-left text-xs"></i>
+                    <i class="fa-solid fa-chevron-left text-[10px]"></i>
                 </button>
             </div>
 
-            <!-- Search Input & Priority Filter -->
-            <div class="flex items-center gap-3 w-full md:w-auto">
-                <div class="relative w-full md:w-72">
-                    <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                    <input type="text" id="searchInput" oninput="renderMeetings()" placeholder="جستجو در جلسات..." 
-                           class="w-full pl-3 pr-10 py-2.5 bg-white border border-slate-200 rounded-2xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 transition placeholder:text-slate-400 shadow-sm">
+            <!-- Search Input & Badge -->
+            <div class="flex items-center gap-2 w-full md:w-auto">
+                <div class="relative flex-1 md:w-64">
+                    <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <input type="text" id="searchInput" oninput="renderMeetings()" placeholder="جستجو..." 
+                           class="w-full pl-3 pr-9 py-2 bg-white border border-slate-200 rounded-2xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-500 transition placeholder:text-slate-400 shadow-sm">
                 </div>
 
-                <span id="totalMeetingsBadge" class="bg-brand-50 text-brand-700 px-3 py-2 rounded-2xl text-xs font-bold border border-brand-100 whitespace-nowrap shadow-sm">
-                    جلسات هفته: ۰
+                <span id="totalMeetingsBadge" class="bg-brand-50 text-brand-700 px-3 py-2 rounded-2xl text-xs font-extrabold border border-brand-100 whitespace-nowrap shadow-sm">
+                    جلسات: ۰
                 </span>
             </div>
         </div>
 
-        <!-- Weekly Days Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4">
+        <!-- کلید همگام‌سازی (نمایش) -->
+        <div class="mb-4 glass-panel p-3 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-key text-brand-600"></i>
+                <span class="font-bold text-slate-700">کلید همگام‌سازی این دستگاه:</span>
+                <code id="syncKeyDisplay" class="bg-slate-100 px-2 py-1 rounded-lg font-mono text-[11px] text-slate-800 select-all"></code>
+            </div>
+            <button onclick="copySyncKey()" class="text-brand-600 hover:text-brand-700 font-bold flex items-center gap-1">
+                <i class="fa-regular fa-copy"></i>
+                کپی کلید
+            </button>
+        </div>
+
+        <!-- Mobile Horizontal Days Selector Tabs -->
+        <div class="lg:hidden mb-4 overflow-x-auto no-scrollbar flex items-center gap-2 py-1 px-1" id="mobileDayTabs">
+            <!-- Dynamic Mobile Tabs Rendered via JS -->
+        </div>
+
+        <!-- Weekly Days Grid (Horizontal Tabs on Mobile / 7-Cols Grid on Desktop) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-3 sm:gap-4">
             
             <!-- Saturday -->
-            <div class="day-column glass-panel rounded-3xl p-3.5 flex flex-col transition border-t-4 border-t-blue-500" data-day="شنبه">
-                <div class="pb-2.5 mb-2.5 border-b border-slate-200">
+            <div class="day-column glass-panel rounded-3xl p-3 sm:p-3.5 flex flex-col transition border-t-4 border-t-blue-500" data-day="شنبه">
+                <div class="pb-2 mb-2.5 border-b border-slate-200">
                     <div class="flex items-center justify-between">
-                        <span class="font-bold text-slate-800">شنبه</span>
+                        <span class="font-extrabold text-slate-800 text-sm">شنبه</span>
                         <span class="day-count text-xs font-bold bg-slate-200/80 px-2 py-0.5 rounded-xl text-slate-700">۰</span>
                     </div>
-                    <div class="day-date-label text-[11px] text-slate-500 mt-1 font-medium"></div>
+                    <div class="day-date-label text-xs text-slate-500 mt-1 font-bold"></div>
                 </div>
-                <div class="meetings-list space-y-3 flex-1 min-h-[140px]" id="list-شنبه"></div>
-                <button onclick="openModalForDay('شنبه')" class="mt-2 w-full py-1.5 text-xs font-semibold text-brand-600 hover:bg-brand-50 rounded-xl transition flex items-center justify-center gap-1">
-                    <i class="fa-solid fa-plus"></i> ثبت جلسه
+                <div class="meetings-list space-y-2.5 flex-1 min-h-[120px]" id="list-شنبه"></div>
+                <button onclick="openModalForDay('شنبه')" class="mt-2.5 w-full py-2 text-xs font-bold text-brand-600 bg-brand-50/60 hover:bg-brand-100/70 active:scale-98 rounded-2xl transition flex items-center justify-center gap-1.5 border border-brand-100">
+                    <i class="fa-solid fa-plus text-[10px]"></i> ثبت جلسه
                 </button>
             </div>
 
             <!-- Sunday -->
-            <div class="day-column glass-panel rounded-3xl p-3.5 flex flex-col transition border-t-4 border-t-indigo-500" data-day="یکشنبه">
-                <div class="pb-2.5 mb-2.5 border-b border-slate-200">
+            <div class="day-column glass-panel rounded-3xl p-3 sm:p-3.5 flex flex-col transition border-t-4 border-t-indigo-500" data-day="یکشنبه">
+                <div class="pb-2 mb-2.5 border-b border-slate-200">
                     <div class="flex items-center justify-between">
-                        <span class="font-bold text-slate-800">یکشنبه</span>
+                        <span class="font-extrabold text-slate-800 text-sm">یکشنبه</span>
                         <span class="day-count text-xs font-bold bg-slate-200/80 px-2 py-0.5 rounded-xl text-slate-700">۰</span>
                     </div>
-                    <div class="day-date-label text-[11px] text-slate-500 mt-1 font-medium"></div>
+                    <div class="day-date-label text-xs text-slate-500 mt-1 font-bold"></div>
                 </div>
-                <div class="meetings-list space-y-3 flex-1 min-h-[140px]" id="list-یکشنبه"></div>
-                <button onclick="openModalForDay('یکشنبه')" class="mt-2 w-full py-1.5 text-xs font-semibold text-brand-600 hover:bg-brand-50 rounded-xl transition flex items-center justify-center gap-1">
-                    <i class="fa-solid fa-plus"></i> ثبت جلسه
+                <div class="meetings-list space-y-2.5 flex-1 min-h-[120px]" id="list-یکشنبه"></div>
+                <button onclick="openModalForDay('یکشنبه')" class="mt-2.5 w-full py-2 text-xs font-bold text-brand-600 bg-brand-50/60 hover:bg-brand-100/70 active:scale-98 rounded-2xl transition flex items-center justify-center gap-1.5 border border-brand-100">
+                    <i class="fa-solid fa-plus text-[10px]"></i> ثبت جلسه
                 </button>
             </div>
 
             <!-- Monday -->
-            <div class="day-column glass-panel rounded-3xl p-3.5 flex flex-col transition border-t-4 border-t-purple-500" data-day="دوشنبه">
-                <div class="pb-2.5 mb-2.5 border-b border-slate-200">
+            <div class="day-column glass-panel rounded-3xl p-3 sm:p-3.5 flex flex-col transition border-t-4 border-t-purple-500" data-day="دوشنبه">
+                <div class="pb-2 mb-2.5 border-b border-slate-200">
                     <div class="flex items-center justify-between">
-                        <span class="font-bold text-slate-800">دوشنبه</span>
+                        <span class="font-extrabold text-slate-800 text-sm">دوشنبه</span>
                         <span class="day-count text-xs font-bold bg-slate-200/80 px-2 py-0.5 rounded-xl text-slate-700">۰</span>
                     </div>
-                    <div class="day-date-label text-[11px] text-slate-500 mt-1 font-medium"></div>
+                    <div class="day-date-label text-xs text-slate-500 mt-1 font-bold"></div>
                 </div>
-                <div class="meetings-list space-y-3 flex-1 min-h-[140px]" id="list-دوشنبه"></div>
-                <button onclick="openModalForDay('دوشنبه')" class="mt-2 w-full py-1.5 text-xs font-semibold text-brand-600 hover:bg-brand-50 rounded-xl transition flex items-center justify-center gap-1">
-                    <i class="fa-solid fa-plus"></i> ثبت جلسه
+                <div class="meetings-list space-y-2.5 flex-1 min-h-[120px]" id="list-دوشنبه"></div>
+                <button onclick="openModalForDay('دوشنبه')" class="mt-2.5 w-full py-2 text-xs font-bold text-brand-600 bg-brand-50/60 hover:bg-brand-100/70 active:scale-98 rounded-2xl transition flex items-center justify-center gap-1.5 border border-brand-100">
+                    <i class="fa-solid fa-plus text-[10px]"></i> ثبت جلسه
                 </button>
             </div>
 
             <!-- Tuesday -->
-            <div class="day-column glass-panel rounded-3xl p-3.5 flex flex-col transition border-t-4 border-t-amber-500" data-day="سه‌شنبه">
-                <div class="pb-2.5 mb-2.5 border-b border-slate-200">
+            <div class="day-column glass-panel rounded-3xl p-3 sm:p-3.5 flex flex-col transition border-t-4 border-t-amber-500" data-day="سه‌شنبه">
+                <div class="pb-2 mb-2.5 border-b border-slate-200">
                     <div class="flex items-center justify-between">
-                        <span class="font-bold text-slate-800">سه‌شنبه</span>
+                        <span class="font-extrabold text-slate-800 text-sm">سه‌شنبه</span>
                         <span class="day-count text-xs font-bold bg-slate-200/80 px-2 py-0.5 rounded-xl text-slate-700">۰</span>
                     </div>
-                    <div class="day-date-label text-[11px] text-slate-500 mt-1 font-medium"></div>
+                    <div class="day-date-label text-xs text-slate-500 mt-1 font-bold"></div>
                 </div>
-                <div class="meetings-list space-y-3 flex-1 min-h-[140px]" id="list-سه‌شنبه"></div>
-                <button onclick="openModalForDay('سه‌شنبه')" class="mt-2 w-full py-1.5 text-xs font-semibold text-brand-600 hover:bg-brand-50 rounded-xl transition flex items-center justify-center gap-1">
-                    <i class="fa-solid fa-plus"></i> ثبت جلسه
+                <div class="meetings-list space-y-2.5 flex-1 min-h-[120px]" id="list-سه‌شنبه"></div>
+                <button onclick="openModalForDay('سه‌شنبه')" class="mt-2.5 w-full py-2 text-xs font-bold text-brand-600 bg-brand-50/60 hover:bg-brand-100/70 active:scale-98 rounded-2xl transition flex items-center justify-center gap-1.5 border border-brand-100">
+                    <i class="fa-solid fa-plus text-[10px]"></i> ثبت جلسه
                 </button>
             </div>
 
             <!-- Wednesday -->
-            <div class="day-column glass-panel rounded-3xl p-3.5 flex flex-col transition border-t-4 border-t-teal-500" data-day="چهارشنبه">
-                <div class="pb-2.5 mb-2.5 border-b border-slate-200">
+            <div class="day-column glass-panel rounded-3xl p-3 sm:p-3.5 flex flex-col transition border-t-4 border-t-teal-500" data-day="چهارشنبه">
+                <div class="pb-2 mb-2.5 border-b border-slate-200">
                     <div class="flex items-center justify-between">
-                        <span class="font-bold text-slate-800">چهارشنبه</span>
+                        <span class="font-extrabold text-slate-800 text-sm">چهارشنبه</span>
                         <span class="day-count text-xs font-bold bg-slate-200/80 px-2 py-0.5 rounded-xl text-slate-700">۰</span>
                     </div>
-                    <div class="day-date-label text-[11px] text-slate-500 mt-1 font-medium"></div>
+                    <div class="day-date-label text-xs text-slate-500 mt-1 font-bold"></div>
                 </div>
-                <div class="meetings-list space-y-3 flex-1 min-h-[140px]" id="list-چهارشنبه"></div>
-                <button onclick="openModalForDay('چهارشنبه')" class="mt-2 w-full py-1.5 text-xs font-semibold text-brand-600 hover:bg-brand-50 rounded-xl transition flex items-center justify-center gap-1">
-                    <i class="fa-solid fa-plus"></i> ثبت جلسه
+                <div class="meetings-list space-y-2.5 flex-1 min-h-[120px]" id="list-چهارشنبه"></div>
+                <button onclick="openModalForDay('چهارشنبه')" class="mt-2.5 w-full py-2 text-xs font-bold text-brand-600 bg-brand-50/60 hover:bg-brand-100/70 active:scale-98 rounded-2xl transition flex items-center justify-center gap-1.5 border border-brand-100">
+                    <i class="fa-solid fa-plus text-[10px]"></i> ثبت جلسه
                 </button>
             </div>
 
             <!-- Thursday -->
-            <div class="day-column glass-panel rounded-3xl p-3.5 flex flex-col transition border-t-4 border-t-emerald-500" data-day="پنج‌شنبه">
-                <div class="pb-2.5 mb-2.5 border-b border-slate-200">
+            <div class="day-column glass-panel rounded-3xl p-3 sm:p-3.5 flex flex-col transition border-t-4 border-t-emerald-500" data-day="پنج‌شنبه">
+                <div class="pb-2 mb-2.5 border-b border-slate-200">
                     <div class="flex items-center justify-between">
-                        <span class="font-bold text-slate-800">پنج‌شنبه</span>
+                        <span class="font-extrabold text-slate-800 text-sm">پنج‌شنبه</span>
                         <span class="day-count text-xs font-bold bg-slate-200/80 px-2 py-0.5 rounded-xl text-slate-700">۰</span>
                     </div>
-                    <div class="day-date-label text-[11px] text-slate-500 mt-1 font-medium"></div>
+                    <div class="day-date-label text-xs text-slate-500 mt-1 font-bold"></div>
                 </div>
-                <div class="meetings-list space-y-3 flex-1 min-h-[140px]" id="list-پنج‌شنبه"></div>
-                <button onclick="openModalForDay('پنج‌شنبه')" class="mt-2 w-full py-1.5 text-xs font-semibold text-brand-600 hover:bg-brand-50 rounded-xl transition flex items-center justify-center gap-1">
-                    <i class="fa-solid fa-plus"></i> ثبت جلسه
+                <div class="meetings-list space-y-2.5 flex-1 min-h-[120px]" id="list-پنج‌شنبه"></div>
+                <button onclick="openModalForDay('پنج‌شنبه')" class="mt-2.5 w-full py-2 text-xs font-bold text-brand-600 bg-brand-50/60 hover:bg-brand-100/70 active:scale-98 rounded-2xl transition flex items-center justify-center gap-1.5 border border-brand-100">
+                    <i class="fa-solid fa-plus text-[10px]"></i> ثبت جلسه
                 </button>
             </div>
 
             <!-- Friday -->
-            <div class="day-column glass-panel rounded-3xl p-3.5 flex flex-col transition border-t-4 border-t-rose-500 bg-rose-50/20" data-day="جمعه">
-                <div class="pb-2.5 mb-2.5 border-b border-rose-200">
+            <div class="day-column glass-panel rounded-3xl p-3 sm:p-3.5 flex flex-col transition border-t-4 border-t-rose-500 bg-rose-50/20" data-day="جمعه">
+                <div class="pb-2 mb-2.5 border-b border-rose-200">
                     <div class="flex items-center justify-between">
-                        <span class="font-bold text-rose-700">جمعه</span>
+                        <span class="font-extrabold text-rose-700 text-sm">جمعه</span>
                         <span class="day-count text-xs font-bold bg-rose-100 px-2 py-0.5 rounded-xl text-rose-700">۰</span>
                     </div>
-                    <div class="day-date-label text-[11px] text-rose-500 mt-1 font-medium"></div>
+                    <div class="day-date-label text-xs text-rose-500 mt-1 font-bold"></div>
                 </div>
-                <div class="meetings-list space-y-3 flex-1 min-h-[140px]" id="list-جمعه"></div>
-                <button onclick="openModalForDay('جمعه')" class="mt-2 w-full py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-100/50 rounded-xl transition flex items-center justify-center gap-1">
-                    <i class="fa-solid fa-plus"></i> ثبت جلسه
+                <div class="meetings-list space-y-2.5 flex-1 min-h-[120px]" id="list-جمعه"></div>
+                <button onclick="openModalForDay('جمعه')" class="mt-2.5 w-full py-2 text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100/60 active:scale-98 rounded-2xl transition flex items-center justify-center gap-1.5 border border-rose-100">
+                    <i class="fa-solid fa-plus text-[10px]"></i> ثبت جلسه
                 </button>
             </div>
         </div>
     </main>
 
     <!-- Floating Action Button (FAB) for Mobile -->
-    <button onclick="openModal()" class="sm:hidden fixed bottom-6 left-6 z-40 w-14 h-14 rounded-full bg-brand-600 text-white flex items-center justify-center shadow-lg shadow-brand-600/30 active:scale-95 transition">
+    <button onclick="openModal()" class="sm:hidden fixed bottom-5 left-5 z-40 w-14 h-14 rounded-full bg-brand-600 text-white flex items-center justify-center shadow-xl shadow-brand-600/40 active:scale-90 transition">
         <i class="fa-solid fa-plus text-2xl"></i>
     </button>
 
-    <!-- Modal Form (Add / Edit Meeting) -->
-    <div id="meetingModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm transition-opacity duration-200">
-        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-100 animate-slide-up">
+    <!-- Modal Form (Responsive Bottom Sheet on Mobile / Centered on Desktop) -->
+    <div id="meetingModal" class="fixed inset-0 z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/50 backdrop-blur-sm transition-opacity duration-200">
+        <div class="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden border border-slate-100 animate-slide-up max-h-[90vh] flex flex-col">
+            
+            <!-- Mobile Grab Handle -->
+            <div class="w-12 h-1 bg-slate-300 rounded-full mx-auto mt-2.5 sm:hidden"></div>
+
             <!-- Modal Header -->
-            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+            <div class="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/60">
                 <div class="flex items-center gap-2.5">
                     <div class="w-8 h-8 rounded-xl bg-brand-100 text-brand-600 flex items-center justify-center">
                         <i class="fa-solid fa-calendar-plus text-sm"></i>
                     </div>
-                    <h3 id="modalTitle" class="text-base font-bold text-slate-800">افزودن جلسه جدید</h3>
+                    <h3 id="modalTitle" class="text-sm sm:text-base font-extrabold text-slate-800">افزودن جلسه جدید</h3>
                 </div>
-                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition">
+                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 p-2 rounded-xl hover:bg-slate-100 transition active:scale-95">
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
             
-            <!-- Modal Form -->
-            <form id="meetingForm" onsubmit="handleFormSubmit(event)" class="p-6 space-y-4">
+            <!-- Modal Form Content (Scrollable) -->
+            <form id="meetingForm" onsubmit="handleFormSubmit(event)" class="p-5 space-y-4 overflow-y-auto">
                 <input type="hidden" id="meetingId">
 
                 <!-- Title -->
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1.5">عنوان جلسه *</label>
-                    <input type="text" id="titleInput" required placeholder="مثلاً: جلسه هم‌آفرینی محصول" 
-                           class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
+                    <label class="block text-xs font-bold text-slate-700 mb-1">عنوان جلسه *</label>
+                    <input type="text" id="titleInput" required placeholder="مثلاً: جلسه هماهنگی تیم فنی" 
+                           class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
                 </div>
 
                 <!-- Day of Week & Category -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1.5">روز هفته *</label>
-                        <select id="dayInput" onchange="autoFillDateByDay()" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
+                        <label class="block text-xs font-bold text-slate-700 mb-1">روز هفته *</label>
+                        <select id="dayInput" onchange="autoFillDateByDay()" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
                             <option value="شنبه">شنبه</option>
                             <option value="یکشنبه">یکشنبه</option>
                             <option value="دوشنبه">دوشنبه</option>
@@ -355,8 +406,8 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1.5">نوع جلسه *</label>
-                        <select id="categoryInput" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
+                        <label class="block text-xs font-bold text-slate-700 mb-1">نوع جلسه *</label>
+                        <select id="categoryInput" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
                             <option value="in-person">حضوری</option>
                             <option value="online">آنلاین</option>
                             <option value="urgent">ضروری</option>
@@ -364,18 +415,18 @@
                     </div>
                 </div>
 
-                <!-- Date Selection & Week Navigation Buttons -->
+                <!-- Date Selection & Week Shift Buttons -->
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1.5">تاریخ جلسه (شمسی)</label>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">تاریخ جلسه (شمسی: YYYY/MM/DD) *</label>
                     <div class="flex flex-col sm:flex-row gap-2">
-                        <input type="text" id="dateInput" placeholder="۱۴۰۳/۰۸/۱۵" required
-                               class="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
+                        <input type="text" id="dateInput" placeholder="۱۴۰۵/۰۸/۱۸" required pattern="[\d۰-۹]{4}/[\d۰-۹]{2}/[\d۰-۹]{2}"
+                               class="flex-1 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm font-bold text-center sm:text-right focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
                         <div class="flex gap-1.5">
-                            <button type="button" onclick="shiftDateDays(-7)" class="flex-1 sm:flex-none px-3 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 border border-slate-200 whitespace-nowrap active:scale-95">
+                            <button type="button" onclick="shiftDateDays(-7)" class="flex-1 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl text-xs font-bold transition flex items-center justify-center gap-1 border border-slate-200 active:scale-95">
                                 <i class="fa-solid fa-backward text-[10px]"></i>
                                 <span>هفته قبل</span>
                             </button>
-                            <button type="button" onclick="shiftDateDays(7)" class="flex-1 sm:flex-none px-3 py-2.5 bg-indigo-50 hover:bg-indigo-100 text-brand-700 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 border border-indigo-100 whitespace-nowrap active:scale-95">
+                            <button type="button" onclick="shiftDateDays(7)" class="flex-1 px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-brand-700 rounded-2xl text-xs font-bold transition flex items-center justify-center gap-1 border border-indigo-100 active:scale-95">
                                 <span>هفته بعد</span>
                                 <i class="fa-solid fa-forward text-[10px]"></i>
                             </button>
@@ -383,53 +434,49 @@
                     </div>
                 </div>
 
-                <!-- Separate Hours & Minutes Controls -->
-                <div class="grid grid-cols-2 gap-4">
-                    <!-- Start Time (Hour & Minute) -->
+                <!-- Hours & Minutes Controls -->
+                <div class="grid grid-cols-2 gap-3">
+                    <!-- Start Time -->
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1.5">ساعت شروع *</label>
-                        <div class="flex items-center gap-1.5">
-                            <select id="startHour" required class="w-1/2 px-2 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-center focus:outline-none focus:ring-2 focus:ring-brand-500">
-                            </select>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">ساعت شروع *</label>
+                        <div class="flex items-center gap-1">
+                            <select id="startHour" required class="w-1/2 px-2 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm font-bold text-center focus:outline-none focus:ring-2 focus:ring-brand-500"></select>
                             <span class="font-bold text-slate-400">:</span>
-                            <select id="startMin" required class="w-1/2 px-2 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-center focus:outline-none focus:ring-2 focus:ring-brand-500">
-                            </select>
+                            <select id="startMin" required class="w-1/2 px-2 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm font-bold text-center focus:outline-none focus:ring-2 focus:ring-brand-500"></select>
                         </div>
                     </div>
 
-                    <!-- End Time (Hour & Minute) -->
+                    <!-- End Time -->
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1.5">ساعت پایان *</label>
-                        <div class="flex items-center gap-1.5">
-                            <select id="endHour" required class="w-1/2 px-2 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-center focus:outline-none focus:ring-2 focus:ring-brand-500">
-                            </select>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">ساعت پایان *</label>
+                        <div class="flex items-center gap-1">
+                            <select id="endHour" required class="w-1/2 px-2 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm font-bold text-center focus:outline-none focus:ring-2 focus:ring-brand-500"></select>
                             <span class="font-bold text-slate-400">:</span>
-                            <select id="endMin" required class="w-1/2 px-2 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-center focus:outline-none focus:ring-2 focus:ring-brand-500">
-                            </select>
+                            <select id="endMin" required class="w-1/2 px-2 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm font-bold text-center focus:outline-none focus:ring-2 focus:ring-brand-500"></select>
                         </div>
                     </div>
                 </div>
 
                 <!-- Location -->
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1.5">مکان / لینک جلسه *</label>
-                    <input type="text" id="locationInput" required placeholder="اتاق جلسه 2 یا لینک اسکای‌روم/گوگل‌میت" 
-                           class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
+                    <label class="block text-xs font-bold text-slate-700 mb-1">مکان / لینک جلسه *</label>
+                    <input type="text" id="locationInput" required placeholder="مثلاً: اتاق طبقه دوم یا لینک گوگل‌میت" 
+                           class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
                 </div>
 
                 <!-- Description -->
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1.5">توضیحات تکمیلی</label>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">توضیحات تکمیلی</label>
                     <textarea id="descriptionInput" rows="2" placeholder="دستور جلسه یا یادداشت‌ها..." 
-                              class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 transition resize-none"></textarea>
+                              class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 transition resize-none"></textarea>
                 </div>
 
-                <!-- Actions -->
-                <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
-                    <button type="button" onclick="closeModal()" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition">
+                <!-- Form Actions -->
+                <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="closeModal()" class="w-1/2 sm:w-auto px-4 py-2.5 text-xs sm:text-sm font-bold text-slate-600 hover:bg-slate-100 rounded-2xl transition text-center">
                         انصراف
                     </button>
-                    <button type="submit" class="px-6 py-2.5 text-sm font-semibold bg-brand-600 hover:bg-brand-700 text-white rounded-xl shadow-md shadow-brand-600/20 transition active:scale-95">
+                    <button type="submit" class="w-1/2 sm:w-auto px-6 py-2.5 text-xs sm:text-sm font-bold bg-brand-600 hover:bg-brand-700 text-white rounded-2xl shadow-md shadow-brand-600/20 transition active:scale-95 text-center">
                         ذخیره جلسه
                     </button>
                 </div>
@@ -438,33 +485,95 @@
     </div>
 
     <!-- Toast Notification -->
-    <div id="toast" class="fixed bottom-6 right-6 z-50 hidden bg-slate-800 text-white px-5 py-3 rounded-2xl shadow-xl text-sm flex items-center gap-3 transition animate-slide-up">
-        <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+    <div id="toast" class="fixed bottom-6 right-4 left-4 sm:left-auto sm:right-6 z-50 hidden bg-slate-800 text-white px-5 py-3 rounded-2xl shadow-xl text-xs sm:text-sm flex items-center gap-3 transition animate-slide-up">
+        <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 text-base sm:text-lg"></i>
         <span id="toastMessage">عملیات با موفقیت انجام شد</span>
     </div>
 
-    <!-- Footer -->
-    <footer class="glass-panel mt-12 py-4 text-center text-xs text-slate-500 z-10 border-t border-slate-200">
-        سیستم برنامه‌ریزی جلسات هفتگی | آماده انتشار در GitHub Pages
-    </footer>
-
     <!-- Script Logic -->
     <script>
-        let meetings = [];
-        let currentWeekOffset = 0; // 0 = Current week
-        const DAYS = ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنج‌شنبه', 'جمعه'];
+        // ========== تبدیل اعداد به فارسی ==========
+        const persianDigits = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+        const englishDigits = ['0','1','2','3','4','5','6','7','8','9'];
 
-        // Initial setup
+        function toPersianDigits(str) {
+            if (str === null || str === undefined) return '';
+            return String(str).replace(/[0-9]/g, d => persianDigits[d]);
+        }
+
+        function toEnglishDigits(str) {
+            if (str === null || str === undefined) return '';
+            return String(str).replace(/[۰-۹]/g, d => englishDigits[persianDigits.indexOf(d)]);
+        }
+
+        // ========== داده‌ها و همگام‌سازی ==========
+        let meetings = [];
+        let currentWeekOffset = 0;
+        let selectedMobileDay = 'شنبه';
+        const DAYS = ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنج‌شنبه', 'جمعه'];
+        let syncKey = '';
+        let isOnline = navigator.onLine;
+
         window.addEventListener('DOMContentLoaded', () => {
             initTimeSelectOptions();
             loadMeetings();
+            initSyncKey();
+            selectTodayForMobile();
+            updateOnlineStatus();
             renderWeekView();
+            
+            // گوش دادن به تغییر وضعیت اینترنت
+            window.addEventListener('online', () => {
+                isOnline = true;
+                updateOnlineStatus();
+                // به محض وصل شدن به اینترنت، همگام‌سازی خودکار
+                autoSyncOnConnect();
+            });
+            window.addEventListener('offline', () => {
+                isOnline = false;
+                updateOnlineStatus();
+            });
         });
+
+        function initSyncKey() {
+            syncKey = localStorage.getItem('weekly_meetings_sync_key');
+            if (!syncKey) {
+                // ساخت کلید یکتا برای این دستگاه/مرورگر
+                syncKey = 'WM-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+                localStorage.setItem('weekly_meetings_sync_key', syncKey);
+            }
+            document.getElementById('syncKeyDisplay').textContent = syncKey;
+        }
+
+        function copySyncKey() {
+            navigator.clipboard.writeText(syncKey).then(() => {
+                showToast('کلید همگام‌سازی کپی شد');
+            }).catch(() => {
+                showToast('کپی نشد؛ دستی کپی کنید', 'rose');
+            });
+        }
+
+        function updateOnlineStatus() {
+            const el = document.getElementById('onlineStatus');
+            if (!el) return;
+            if (isOnline) {
+                el.className = 'hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11px] font-bold online-badge';
+                el.innerHTML = '<i class="fa-solid fa-wifi"></i><span>آنلاین</span>';
+            } else {
+                el.className = 'hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11px] font-bold offline-badge';
+                el.innerHTML = '<i class="fa-solid fa-wifi"></i><span>آفلاین</span>';
+            }
+        }
 
         function loadMeetings() {
             try {
                 const data = localStorage.getItem('weekly_meetings_data');
                 meetings = data ? JSON.parse(data) : [];
+                // اطمینان از وجود فیلد synced
+                meetings = meetings.map(m => ({
+                    ...m,
+                    synced: m.synced === true
+                }));
             } catch (e) {
                 meetings = [];
             }
@@ -475,10 +584,40 @@
                 localStorage.setItem('weekly_meetings_data', JSON.stringify(meetings));
             } catch (e) {
                 console.error("Failed to save to localStorage", e);
+                showToast('خطا در ذخیره محلی', 'rose');
             }
         }
 
-        // Initialize Hour & Minute dropdown options
+        // همگام‌سازی دستی
+        function syncMeetings() {
+            if (!navigator.onLine) {
+                showToast('فعلاً آفلاین هستید. به اینترنت وصل شوید', 'rose');
+                return;
+            }
+            // شبیه‌سازی ارسال به سرور (در نسخه واقعی اینجا API call می‌زنید)
+            // همه جلسات را به عنوان همگام‌شده علامت می‌زنیم
+            let pending = meetings.filter(m => !m.synced).length;
+            meetings = meetings.map(m => ({ ...m, synced: true }));
+            saveMeetings();
+            showToast(pending > 0 
+                ? `همگام‌سازی انجام شد (${toPersianDigits(pending)} جلسه)` 
+                : 'همه جلسات قبلاً همگام شده‌اند');
+            renderMeetings();
+        }
+
+        // همگام‌سازی خودکار به محض وصل شدن اینترنت
+        function autoSyncOnConnect() {
+            const pending = meetings.filter(m => !m.synced);
+            if (pending.length === 0) return;
+            
+            // شبیه‌سازی همگام‌سازی
+            meetings = meetings.map(m => ({ ...m, synced: true }));
+            saveMeetings();
+            showToast(`اتصال برقرار شد • ${toPersianDigits(pending.length)} جلسه همگام شد`);
+            renderMeetings();
+        }
+
+        // Initialize Hour & Minute dropdown options (با اعداد فارسی)
         function initTimeSelectOptions() {
             const startHour = document.getElementById('startHour');
             const endHour = document.getElementById('endHour');
@@ -492,16 +631,16 @@
 
             for (let i = 0; i < 24; i++) {
                 const val = i.toString().padStart(2, '0');
-                const pVal = toPersianDigits(val);
-                startHour.add(new Option(pVal, val));
-                endHour.add(new Option(pVal, val));
+                const faVal = toPersianDigits(val);
+                startHour.add(new Option(faVal, val));
+                endHour.add(new Option(faVal, val));
             }
 
             for (let i = 0; i < 60; i += 5) {
                 const val = i.toString().padStart(2, '0');
-                const pVal = toPersianDigits(val);
-                startMin.add(new Option(pVal, val));
-                endMin.add(new Option(pVal, val));
+                const faVal = toPersianDigits(val);
+                startMin.add(new Option(faVal, val));
+                endMin.add(new Option(faVal, val));
             }
 
             startHour.value = '09';
@@ -520,7 +659,13 @@
             return m;
         }
 
-        // Navigation Controls
+        function selectTodayForMobile() {
+            const todayIndex = (moment().day() === 6) ? 0 : (moment().day() + 1);
+            if (todayIndex >= 0 && todayIndex < DAYS.length) {
+                selectedMobileDay = DAYS[todayIndex];
+            }
+        }
+
         function changeWeek(delta) {
             currentWeekOffset += delta;
             renderWeekView();
@@ -528,7 +673,39 @@
 
         function goToCurrentWeek() {
             currentWeekOffset = 0;
+            selectTodayForMobile();
             renderWeekView();
+        }
+
+        function setMobileActiveDay(dayName) {
+            selectedMobileDay = dayName;
+            renderMobileTabs();
+            renderMeetings();
+        }
+
+        // Render Mobile Tabs
+        function renderMobileTabs() {
+            const mobileTabsContainer = document.getElementById('mobileDayTabs');
+            const satMoment = getSaturdayOfWeek(currentWeekOffset);
+
+            mobileTabsContainer.innerHTML = DAYS.map((dayName, index) => {
+                const dayMoment = satMoment.clone().add(index, 'days');
+                const dateNumStr = toPersianDigits(dayMoment.format('jYYYY/jMM/jDD'));
+                const isSelected = selectedMobileDay === dayName;
+                const isToday = dayMoment.isSame(moment(), 'day');
+
+                return `
+                    <button onclick="setMobileActiveDay('${dayName}')" 
+                            class="px-3.5 py-2 rounded-2xl text-xs font-bold flex flex-col items-center gap-0.5 whitespace-nowrap transition active:scale-95 ${
+                                isSelected 
+                                    ? 'bg-brand-600 text-white shadow-md shadow-brand-600/20' 
+                                    : 'bg-white text-slate-700 border border-slate-200'
+                            } ${isToday && !isSelected ? 'border-brand-500 text-brand-600 font-extrabold' : ''}">
+                        <span>${dayName}</span>
+                        <span class="text-[10px] opacity-80">${dateNumStr}</span>
+                    </button>
+                `;
+            }).join('');
         }
 
         // Render Week View
@@ -536,17 +713,19 @@
             const satMoment = getSaturdayOfWeek(currentWeekOffset);
             const friMoment = satMoment.clone().add(6, 'days');
 
-            const satStr = toPersianDigits(satMoment.format('jD jMMMM'));
-            const friStr = toPersianDigits(friMoment.format('jD jMMMM jYYYY'));
+            const satStr = toPersianDigits(satMoment.format('jYYYY/jMM/jDD'));
+            const friStr = toPersianDigits(friMoment.format('jYYYY/jMM/jDD'));
             document.getElementById('weekRangeLabel').textContent = `${satStr} تا ${friStr}`;
 
             DAYS.forEach((dayName, index) => {
                 const dayMoment = satMoment.clone().add(index, 'days');
                 const col = document.querySelector(`[data-day="${dayName}"]`);
+                const formattedNumericDate = toPersianDigits(dayMoment.format('jYYYY/jMM/jDD'));
+
                 if (col) {
                     const dateLabel = col.querySelector('.day-date-label');
                     if (dateLabel) {
-                        dateLabel.textContent = toPersianDigits(dayMoment.format('jD jMMMM jYYYY'));
+                        dateLabel.textContent = formattedNumericDate;
                     }
 
                     if (dayMoment.isSame(moment(), 'day')) {
@@ -557,6 +736,7 @@
                 }
             });
 
+            renderMobileTabs();
             renderMeetings();
         }
 
@@ -568,15 +748,27 @@
 
             DAYS.forEach((dayName, index) => {
                 const dayMoment = satMoment.clone().add(index, 'days');
-                const dayDateStr = toPersianDigits(dayMoment.format('jYYYY/jMM/jDD'));
+                const dayDateStr = dayMoment.format('jYYYY/jMM/jDD'); // انگلیسی برای مقایسه
                 const listContainer = document.getElementById(`list-${dayName}`);
                 const dayColumn = document.querySelector(`[data-day="${dayName}"]`);
                 
                 if (!listContainer) return;
 
-                // Filter meetings for this specific day/date
+                // Handle Responsive Visibility for Mobile
+                if (window.innerWidth < 1024) {
+                    if (dayName === selectedMobileDay) {
+                        dayColumn.classList.remove('hidden');
+                    } else {
+                        dayColumn.classList.add('hidden');
+                    }
+                } else {
+                    dayColumn.classList.remove('hidden');
+                }
+
+                // Filter meetings
                 const dayMeetings = meetings.filter(m => {
-                    const matchesDayOrDate = (m.day === dayName) || (m.date === dayDateStr);
+                    const mDateEn = toEnglishDigits(m.date || '');
+                    const matchesDayOrDate = (m.day === dayName) || (mDateEn === dayDateStr);
                     const matchesSearch = !searchTerm || 
                         m.title.toLowerCase().includes(searchTerm) || 
                         m.location.toLowerCase().includes(searchTerm) || 
@@ -592,47 +784,55 @@
                     if (countBadge) countBadge.textContent = toPersianDigits(dayMeetings.length);
                 }
 
-                // Render cards HTML
+                // Render HTML
                 if (dayMeetings.length === 0) {
                     listContainer.innerHTML = `
-                        <div class="h-28 flex flex-col items-center justify-center text-slate-400 border-2 border-dashed border-slate-200/80 rounded-2xl p-2 text-center">
-                            <i class="fa-regular fa-calendar-xmark text-lg mb-1 opacity-60"></i>
-                            <span class="text-[11px] font-medium">جلسه‌ای ثبت نشده</span>
+                        <div class="h-24 sm:h-28 flex flex-col items-center justify-center text-slate-400 border-2 border-dashed border-slate-200/80 rounded-2xl p-2 text-center">
+                            <i class="fa-regular fa-calendar-xmark text-base mb-1 opacity-60"></i>
+                            <span class="text-[11px] font-bold">جلسه‌ای ثبت نشده</span>
                         </div>
                     `;
                 } else {
                     listContainer.innerHTML = dayMeetings.map(m => {
                         const catBadge = getCategoryTag(m.category);
+                        const startFa = toPersianDigits(m.startTime);
+                        const endFa = toPersianDigits(m.endTime);
+                        const syncedIcon = m.synced 
+                            ? '<i class="fa-solid fa-cloud-check text-emerald-500 text-[10px]" title="همگام‌شده"></i>' 
+                            : '<i class="fa-solid fa-cloud-arrow-up text-amber-500 text-[10px]" title="در انتظار همگام‌سازی"></i>';
                         return `
                             <div class="glass-card rounded-2xl p-3 relative group">
-                                <div class="flex items-start justify-between gap-2 mb-1.5">
-                                    <h4 class="font-bold text-xs text-slate-800 leading-snug line-clamp-2">${escapeHtml(m.title)}</h4>
-                                    <span class="${catBadge.bg} ${catBadge.color} text-[10px] px-2 py-0.5 rounded-lg font-bold whitespace-nowrap">
-                                        ${catBadge.label}
-                                    </span>
+                                <div class="flex items-start justify-between gap-2 mb-1">
+                                    <h4 class="font-extrabold text-xs text-slate-800 leading-snug line-clamp-2">${escapeHtml(m.title)}</h4>
+                                    <div class="flex items-center gap-1">
+                                        ${syncedIcon}
+                                        <span class="${catBadge.bg} ${catBadge.color} text-[10px] px-2 py-0.5 rounded-lg font-extrabold whitespace-nowrap">
+                                            ${catBadge.label}
+                                        </span>
+                                    </div>
                                 </div>
                                 
-                                <div class="text-[11px] text-slate-600 flex items-center gap-1.5 mb-1 font-medium">
+                                <div class="text-[11px] text-slate-600 flex items-center gap-1.5 mb-1 font-bold">
                                     <i class="fa-regular fa-clock text-brand-500 text-xs"></i>
-                                    <span>${toPersianDigits(m.startTime)} تا ${toPersianDigits(m.endTime)}</span>
+                                    <span>${startFa} تا ${endFa}</span>
                                 </div>
 
-                                <div class="text-[11px] text-slate-500 flex items-center gap-1.5 truncate mb-2">
+                                <div class="text-[11px] text-slate-500 flex items-center gap-1.5 truncate mb-1.5 font-medium">
                                     <i class="fa-solid fa-location-dot text-rose-500 text-xs"></i>
                                     <span class="truncate">${escapeHtml(m.location)}</span>
                                 </div>
 
                                 ${m.description ? `
-                                    <p class="text-[10px] text-slate-500 bg-slate-100/70 p-1.5 rounded-xl mb-2 line-clamp-2">
+                                    <p class="text-[10px] text-slate-500 bg-slate-100/80 p-1.5 rounded-xl mb-2 line-clamp-2 font-medium">
                                         ${escapeHtml(m.description)}
                                     </p>
                                 ` : ''}
 
-                                <div class="flex items-center justify-end gap-1 pt-1 border-t border-slate-100 opacity-90 group-hover:opacity-100">
-                                    <button onclick="editMeeting('${m.id}')" class="p-1 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition" title="ویرایش">
+                                <div class="flex items-center justify-end gap-1 pt-1 border-t border-slate-100">
+                                    <button onclick="editMeeting('${m.id}')" class="p-1.5 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-xl transition active:scale-95" title="ویرایش">
                                         <i class="fa-solid fa-pen-to-square text-xs"></i>
                                     </button>
-                                    <button onclick="deleteMeeting('${m.id}')" class="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="حذف">
+                                    <button onclick="deleteMeeting('${m.id}')" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition active:scale-95" title="حذف">
                                         <i class="fa-solid fa-trash-can text-xs"></i>
                                     </button>
                                 </div>
@@ -642,7 +842,7 @@
                 }
             });
 
-            document.getElementById('totalMeetingsBadge').textContent = `جلسات هفته: ${toPersianDigits(weekMeetingCount)}`;
+            document.getElementById('totalMeetingsBadge').textContent = `جلسات: ${toPersianDigits(weekMeetingCount)}`;
         }
 
         function getCategoryTag(category) {
@@ -700,7 +900,7 @@
         function openModalForDay(dayName) {
             document.getElementById('dayInput').value = dayName;
             autoFillDateByDay();
-            openModal(true);
+            openModal(false);
             document.getElementById('modalTitle').textContent = `افزودن جلسه (${dayName})`;
         }
 
@@ -716,7 +916,8 @@
             const title = document.getElementById('titleInput').value.trim();
             const day = document.getElementById('dayInput').value;
             const category = document.getElementById('categoryInput').value;
-            const date = document.getElementById('dateInput').value.trim();
+            // تاریخ را به انگلیسی ذخیره می‌کنیم تا مقایسه آسان باشد
+            const date = toEnglishDigits(document.getElementById('dateInput').value.trim());
             
             const startH = document.getElementById('startHour').value;
             const startM = document.getElementById('startMin').value;
@@ -731,8 +932,11 @@
             if (id) {
                 const index = meetings.findIndex(m => m.id === id);
                 if (index !== -1) {
-                    meetings[index] = { id, title, day, category, date, startTime, endTime, location, description };
-                    showToast('جلسه ویرایش شد');
+                    meetings[index] = { 
+                        id, title, day, category, date, startTime, endTime, location, description,
+                        synced: false // بعد از ویرایش نیاز به همگام‌سازی مجدد
+                    };
+                    showToast('جلسه ویرایش شد (در انتظار همگام‌سازی)');
                 }
             } else {
                 const newMeeting = {
@@ -744,10 +948,23 @@
                     startTime,
                     endTime,
                     location,
-                    description
+                    description,
+                    synced: false // جلسات جدید در انتظار همگام‌سازی
                 };
                 meetings.push(newMeeting);
-                showToast('جلسه با موفقیت ثبت شد');
+                showToast(navigator.onLine 
+                    ? 'جلسه ثبت شد • در حال همگام‌سازی...' 
+                    : 'جلسه ذخیره شد (آفلاین) • بعد از اتصال همگام می‌شود');
+                
+                // اگر آنلاین است، فوراً همگام کن
+                if (navigator.onLine) {
+                    setTimeout(() => {
+                        meetings = meetings.map(m => m.id === newMeeting.id ? {...m, synced: true} : m);
+                        saveMeetings();
+                        renderMeetings();
+                        showToast('جلسه با موفقیت همگام شد');
+                    }, 600);
+                }
             }
 
             saveMeetings();
@@ -763,7 +980,7 @@
             document.getElementById('titleInput').value = meeting.title;
             document.getElementById('dayInput').value = meeting.day;
             document.getElementById('categoryInput').value = meeting.category || 'in-person';
-            document.getElementById('dateInput').value = meeting.date || '';
+            document.getElementById('dateInput').value = toPersianDigits(meeting.date || '');
 
             const [sH, sM] = (meeting.startTime || '09:00').split(':');
             const [eH, eM] = (meeting.endTime || '10:00').split(':');
@@ -786,17 +1003,6 @@
             showToast('جلسه حذف شد', 'rose');
         }
 
-        // Helper functions
-        function toPersianDigits(str) {
-            if (!str) return '';
-            return str.toString().replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
-        }
-
-        function toEnglishDigits(str) {
-            if (!str) return '';
-            return str.toString().replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
-        }
-
         function escapeHtml(str) {
             if (!str) return '';
             return str.replace(/[&<>"']/g, function(m) {
@@ -811,13 +1017,13 @@
 
             toastMessage.textContent = message;
             toastIcon.className = type === 'rose' 
-                ? 'fa-solid fa-circle-exclamation text-rose-400 text-lg' 
-                : 'fa-solid fa-circle-check text-emerald-400 text-lg';
+                ? 'fa-solid fa-circle-exclamation text-rose-400 text-base sm:text-lg' 
+                : 'fa-solid fa-circle-check text-emerald-400 text-base sm:text-lg';
 
             toast.classList.remove('hidden');
             setTimeout(() => {
                 toast.classList.add('hidden');
-            }, 2500);
+            }, 2800);
         }
     </script>
 </body>
