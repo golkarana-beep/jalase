@@ -32,6 +32,8 @@
     <!-- Moment Persian CDN -->
     <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/moment-jalaali@0.9.2/build/moment-jalaali.js"></script>
+    <!-- Supabase (همگام‌سازی ابری بین دستگاه‌ها) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <script>
         tailwind.config = {
@@ -252,17 +254,46 @@
             </div>
         </div>
 
-        <!-- کلید همگام‌سازی (نمایش) -->
-        <div class="mb-4 glass-panel p-3 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs">
-            <div class="flex items-center gap-2">
-                <i class="fa-solid fa-key text-brand-600"></i>
-                <span class="font-bold text-slate-700">کلید همگام‌سازی این دستگاه:</span>
-                <code id="syncKeyDisplay" class="bg-slate-100 px-2 py-1 rounded-lg font-mono text-[11px] text-slate-800 select-all"></code>
+        <!-- انتقال داده و همگام‌سازی بین دستگاه‌ها -->
+        <div class="mb-4 glass-panel p-3 sm:p-4 rounded-2xl space-y-3 text-xs">
+            <div class="flex flex-col gap-2">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                    <div class="flex items-center gap-2 flex-1 min-w-0">
+                        <i class="fa-solid fa-key text-brand-600 shrink-0"></i>
+                        <span class="font-bold text-slate-700 shrink-0">کلید همگام‌سازی:</span>
+                        <input type="text" id="syncKeyInput" class="flex-1 min-w-0 bg-slate-100 px-2 py-1.5 rounded-lg font-mono text-[11px] text-slate-800 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500" dir="ltr">
+                        <button onclick="saveSyncKey()" class="shrink-0 px-2.5 py-1.5 bg-brand-50 hover:bg-brand-100 text-brand-700 border border-brand-200 rounded-xl font-bold transition active:scale-95" title="ذخیره کلید">
+                            <i class="fa-solid fa-check"></i>
+                        </button>
+                        <button onclick="copySyncKey()" class="shrink-0 px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 rounded-xl font-bold transition active:scale-95" title="کپی کلید">
+                            <i class="fa-regular fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="syncMeetings()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold flex items-center gap-1.5 transition active:scale-95 shadow-sm">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        همگام‌سازی ابری
+                    </button>
+                    <button onclick="exportMeetings()" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl font-bold flex items-center gap-1.5 transition active:scale-95">
+                        <i class="fa-solid fa-file-export"></i>
+                        خروجی
+                    </button>
+                    <button onclick="document.getElementById('importFile').click()" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl font-bold flex items-center gap-1.5 transition active:scale-95">
+                        <i class="fa-solid fa-file-import"></i>
+                        ورودی
+                    </button>
+                    <button onclick="copyMeetingsJson()" class="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl font-bold flex items-center gap-1.5 transition active:scale-95">
+                        <i class="fa-regular fa-copy"></i>
+                        کپی JSON
+                    </button>
+                    <input type="file" id="importFile" accept=".json,application/json" class="hidden" onchange="importMeetings(event)">
+                </div>
             </div>
-            <button onclick="copySyncKey()" class="text-brand-600 hover:text-brand-700 font-bold flex items-center gap-1">
-                <i class="fa-regular fa-copy"></i>
-                کپی کلید
-            </button>
+            <p class="text-[11px] text-slate-500 leading-relaxed" id="syncHelpText">
+                <i class="fa-solid fa-circle-info text-brand-500 ml-1"></i>
+                <span id="cloudStatusText">برای همگام‌سازی بین کامپیوتر و گوشی: روی هر دو دستگاه <b>همان کلید</b> را وارد کنید، سپس «همگام‌سازی ابری» را بزنید. (نیاز به تنظیم Supabase — راهنما در کد)</span>
+            </p>
         </div>
 
         <!-- Mobile Horizontal Days Selector Tabs -->
@@ -531,6 +562,55 @@
             return String(str).replace(/[۰-۹]/g, d => englishDigits[persianDigits.indexOf(d)]);
         }
 
+        // ========== تنظیمات Supabase (همگام‌سازی ابری) ==========
+        // راهنما:
+        // ۱) بروید به https://supabase.com و حساب رایگان بسازید
+        // ۲) New project بسازید
+        // ۳) از منو SQL Editor این دستور را اجرا کنید:
+        //
+        //    create table if not exists meeting_stores (
+        //      sync_key text primary key,
+        //      meetings jsonb not null default '[]'::jsonb,
+        //      updated_at timestamptz default now()
+        //    );
+        //    alter table meeting_stores enable row level security;
+        //    create policy "allow_all_anon" on meeting_stores
+        //      for all to anon using (true) with check (true);
+        //
+        // ۴) Project Settings → API → Project URL و anon public key را کپی کنید
+        // ۵) پایین را پر کنید
+        // ۶) روی کامپیوتر و گوشی همان «کلید همگام‌سازی» را وارد کنید
+        const SUPABASE_CONFIG = {
+            url: "https://cegywlxspibaepeatyda.supabase.co",
+            anonKey: "sb_publishable_AK0duG5LWoCKMUoqcug8Kw_zp7Q_3hD"
+        };
+
+        let supabaseClient = null;
+        let cloudEnabled = false;
+
+        function initSupabase() {
+            const cfg = SUPABASE_CONFIG;
+            if (!cfg.url || !cfg.anonKey) {
+                cloudEnabled = false;
+                const el = document.getElementById('cloudStatusText');
+                if (el) {
+                    el.innerHTML = 'همگام‌سازی ابری هنوز تنظیم نشده. در کد فایل، بخش <b>SUPABASE_CONFIG</b> را با آدرس و anon key پروژه Supabase پر کنید. تا آن زمان از خروجی/ورودی فایل استفاده کنید.';
+                }
+                return;
+            }
+            try {
+                supabaseClient = window.supabase.createClient(cfg.url, cfg.anonKey);
+                cloudEnabled = true;
+                const el = document.getElementById('cloudStatusText');
+                if (el) {
+                    el.innerHTML = 'همگام‌سازی ابری با <b>Supabase</b> فعال است. روی کامپیوتر و گوشی <b>همان کلید</b> را بگذارید؛ با دکمه «همگام‌سازی ابری» یا به‌صورت خودکار هنگام آنلاین شدن، داده‌ها یکی می‌شوند.';
+                }
+            } catch (e) {
+                console.error('Supabase init error', e);
+                cloudEnabled = false;
+            }
+        }
+
         // ========== داده‌ها و همگام‌سازی ==========
         let meetings = [];
         let currentWeekOffset = 0;
@@ -544,6 +624,7 @@
             initTimeSelectOptions();
             loadMeetings();
             initSyncKey();
+            initSupabase();
             selectTodayForMobile();
             updateOnlineStatus();
             renderWeekView();
@@ -552,7 +633,6 @@
             window.addEventListener('online', () => {
                 isOnline = true;
                 updateOnlineStatus();
-                // به محض وصل شدن به اینترنت، همگام‌سازی خودکار
                 autoSyncOnConnect();
             });
             window.addEventListener('offline', () => {
@@ -564,19 +644,191 @@
         function initSyncKey() {
             syncKey = localStorage.getItem('weekly_meetings_sync_key');
             if (!syncKey) {
-                // ساخت کلید یکتا برای این دستگاه/مرورگر
                 syncKey = 'WM-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).substring(2, 8).toUpperCase();
                 localStorage.setItem('weekly_meetings_sync_key', syncKey);
             }
-            document.getElementById('syncKeyDisplay').textContent = syncKey;
+            const input = document.getElementById('syncKeyInput');
+            if (input) input.value = syncKey;
+        }
+
+        function saveSyncKey() {
+            const input = document.getElementById('syncKeyInput');
+            const val = (input?.value || '').trim();
+            if (!val || val.length < 4) {
+                showToast('کلید معتبر نیست', 'rose');
+                return;
+            }
+            syncKey = val;
+            localStorage.setItem('weekly_meetings_sync_key', syncKey);
+            showToast('کلید ذخیره شد');
+            // بعد از تغییر کلید، اگر آنلاین و ابر فعال است همگام کن
+            if (navigator.onLine && cloudEnabled) {
+                syncMeetings();
+            }
         }
 
         function copySyncKey() {
-            navigator.clipboard.writeText(syncKey).then(() => {
+            const text = document.getElementById('syncKeyInput')?.value || syncKey;
+            navigator.clipboard.writeText(text).then(() => {
                 showToast('کلید همگام‌سازی کپی شد');
             }).catch(() => {
                 showToast('کپی نشد؛ دستی کپی کنید', 'rose');
             });
+        }
+
+        function safeSyncKey() {
+            return String(syncKey || '').trim() || 'default';
+        }
+
+        function normalizeMeeting(m) {
+            if (!m || !m.id || !m.title) return null;
+            return {
+                id: String(m.id),
+                title: m.title || '',
+                day: m.day || 'شنبه',
+                category: m.category || 'in-person',
+                date: toEnglishDigits(m.date || ''),
+                startTime: m.startTime || '09:00',
+                endTime: m.endTime || '10:00',
+                location: m.location || '',
+                description: m.description || '',
+                synced: true,
+                updatedAt: m.updatedAt || Date.now()
+            };
+        }
+
+        function mergeMeetingsLists(localList, remoteList) {
+            const map = new Map();
+            (localList || []).forEach(m => {
+                const n = normalizeMeeting(m);
+                if (n) map.set(n.id, n);
+            });
+            (remoteList || []).forEach(m => {
+                const n = normalizeMeeting(m);
+                if (!n) return;
+                const existing = map.get(n.id);
+                if (!existing || (n.updatedAt || 0) >= (existing.updatedAt || 0)) {
+                    map.set(n.id, n);
+                }
+            });
+            return Array.from(map.values());
+        }
+
+        async function pullFromCloud() {
+            if (!cloudEnabled || !supabaseClient) return null;
+            const { data, error } = await supabaseClient
+                .from('meeting_stores')
+                .select('meetings')
+                .eq('sync_key', safeSyncKey())
+                .maybeSingle();
+            if (error) throw error;
+            if (!data) return [];
+            if (Array.isArray(data.meetings)) return data.meetings;
+            return [];
+        }
+
+        async function pushToCloud(list) {
+            if (!cloudEnabled || !supabaseClient) return false;
+            const payload = {
+                sync_key: safeSyncKey(),
+                meetings: list.map(normalizeMeeting).filter(Boolean),
+                updated_at: new Date().toISOString()
+            };
+            const { error } = await supabaseClient
+                .from('meeting_stores')
+                .upsert(payload, { onConflict: 'sync_key' });
+            if (error) throw error;
+            return true;
+        }
+
+        // ========== خروجی / ورودی داده بین دستگاه‌ها ==========
+        function exportMeetings() {
+            const payload = {
+                version: 1,
+                syncKey: syncKey,
+                exportedAt: new Date().toISOString(),
+                meetings: meetings
+            };
+            const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `sessions-${toEnglishDigits(moment().format('jYYYY-jMM-jDD'))}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast(`خروجی ${toPersianDigits(meetings.length)} جلسه آماده شد`);
+        }
+
+        function copyMeetingsJson() {
+            const payload = {
+                version: 1,
+                syncKey: syncKey,
+                exportedAt: new Date().toISOString(),
+                meetings: meetings
+            };
+            const text = JSON.stringify(payload);
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('داده‌ها در کلیپ‌بورد کپی شد');
+            }).catch(() => {
+                showToast('کپی نشد؛ از دکمه خروجی استفاده کنید', 'rose');
+            });
+        }
+
+        function importMeetings(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    let incoming = [];
+
+                    if (Array.isArray(data)) {
+                        incoming = data;
+                    } else if (data && Array.isArray(data.meetings)) {
+                        incoming = data.meetings;
+                    } else {
+                        throw new Error('فرمت نامعتبر');
+                    }
+
+                    // ادغام: جلسات با id تکراری جایگزین می‌شوند، بقیه اضافه می‌شوند
+                    const map = new Map();
+                    meetings.forEach(m => map.set(m.id, m));
+                    incoming.forEach(m => {
+                        if (m && m.id && m.title) {
+                            map.set(m.id, {
+                                id: String(m.id),
+                                title: m.title || '',
+                                day: m.day || 'شنبه',
+                                category: m.category || 'in-person',
+                                date: toEnglishDigits(m.date || ''),
+                                startTime: m.startTime || '09:00',
+                                endTime: m.endTime || '10:00',
+                                location: m.location || '',
+                                description: m.description || '',
+                                synced: !!m.synced
+                            });
+                        }
+                    });
+                    meetings = Array.from(map.values());
+                    saveMeetings();
+                    renderMeetings();
+                    showToast(`${toPersianDigits(incoming.length)} جلسه وارد شد`);
+                } catch (err) {
+                    console.error(err);
+                    showToast('فایل نامعتبر است', 'rose');
+                }
+                // پاک کردن input تا بتوان همان فایل را دوباره انتخاب کرد
+                event.target.value = '';
+            };
+            reader.onerror = function () {
+                showToast('خطا در خواندن فایل', 'rose');
+                event.target.value = '';
+            };
+            reader.readAsText(file);
         }
 
         function updateOnlineStatus() {
@@ -614,33 +866,48 @@
             }
         }
 
-        // همگام‌سازی دستی
-        function syncMeetings() {
+        // همگام‌سازی دستی با ابر
+        async function syncMeetings() {
             if (!navigator.onLine) {
                 showToast('فعلاً آفلاین هستید. به اینترنت وصل شوید', 'rose');
                 return;
             }
-            // شبیه‌سازی ارسال به سرور (در نسخه واقعی اینجا API call می‌زنید)
-            // همه جلسات را به عنوان همگام‌شده علامت می‌زنیم
-            let pending = meetings.filter(m => !m.synced).length;
-            meetings = meetings.map(m => ({ ...m, synced: true }));
-            saveMeetings();
-            showToast(pending > 0 
-                ? `همگام‌سازی انجام شد (${toPersianDigits(pending)} جلسه)` 
-                : 'همه جلسات قبلاً همگام شده‌اند');
-            renderMeetings();
+            if (!cloudEnabled) {
+                showToast('Supabase تنظیم نشده — از خروجی/ورودی فایل استفاده کنید', 'rose');
+                return;
+            }
+            try {
+                showToast('در حال همگام‌سازی...');
+                const remote = await pullFromCloud();
+                meetings = mergeMeetingsLists(meetings, remote || []);
+                meetings = meetings.map(m => ({ ...m, synced: true, updatedAt: m.updatedAt || Date.now() }));
+                await pushToCloud(meetings);
+                saveMeetings();
+                renderMeetings();
+                showToast(`همگام‌سازی شد • ${toPersianDigits(meetings.length)} جلسه`);
+            } catch (e) {
+                console.error(e);
+                showToast('خطا در همگام‌سازی ابری', 'rose');
+            }
         }
 
         // همگام‌سازی خودکار به محض وصل شدن اینترنت
-        function autoSyncOnConnect() {
-            const pending = meetings.filter(m => !m.synced);
-            if (pending.length === 0) return;
-            
-            // شبیه‌سازی همگام‌سازی
-            meetings = meetings.map(m => ({ ...m, synced: true }));
-            saveMeetings();
-            showToast(`اتصال برقرار شد • ${toPersianDigits(pending.length)} جلسه همگام شد`);
-            renderMeetings();
+        async function autoSyncOnConnect() {
+            if (!cloudEnabled || !navigator.onLine) return;
+            try {
+                const remote = await pullFromCloud();
+                const before = meetings.length;
+                meetings = mergeMeetingsLists(meetings, remote || []);
+                meetings = meetings.map(m => ({ ...m, synced: true, updatedAt: m.updatedAt || Date.now() }));
+                await pushToCloud(meetings);
+                saveMeetings();
+                renderMeetings();
+                if (meetings.length !== before || (remote && remote.length)) {
+                    showToast(`اتصال برقرار شد • داده‌ها همگام شد (${toPersianDigits(meetings.length)} جلسه)`);
+                }
+            } catch (e) {
+                console.error('auto sync failed', e);
+            }
         }
 
         // Initialize Hour & Minute dropdown options (با اعداد فارسی)
@@ -800,6 +1067,13 @@
                         m.location.toLowerCase().includes(searchTerm) || 
                         (m.description && m.description.toLowerCase().includes(searchTerm));
                     return matchesDayOrDate && matchesSearch;
+                });
+
+                // مرتب‌سازی بر اساس ساعت شروع (زودتر بالاتر)
+                dayMeetings.sort((a, b) => {
+                    const tA = (a.startTime || '99:99').padStart(5, '0');
+                    const tB = (b.startTime || '99:99').padStart(5, '0');
+                    return tA.localeCompare(tB);
                 });
 
                 weekMeetingCount += dayMeetings.length;
@@ -992,9 +1266,10 @@
                 if (index !== -1) {
                     meetings[index] = { 
                         id, title, day, category, date, startTime, endTime, location, description,
-                        synced: false // بعد از ویرایش نیاز به همگام‌سازی مجدد
+                        synced: false,
+                        updatedAt: Date.now()
                     };
-                    showToast('جلسه ویرایش شد (در انتظار همگام‌سازی)');
+                    showToast('جلسه ویرایش شد');
                 }
             } else {
                 const newMeeting = {
@@ -1007,27 +1282,23 @@
                     endTime,
                     location,
                     description,
-                    synced: false // جلسات جدید در انتظار همگام‌سازی
+                    synced: false,
+                    updatedAt: Date.now()
                 };
                 meetings.push(newMeeting);
-                showToast(navigator.onLine 
+                showToast(navigator.onLine && cloudEnabled
                     ? 'جلسه ثبت شد • در حال همگام‌سازی...' 
-                    : 'جلسه ذخیره شد (آفلاین) • بعد از اتصال همگام می‌شود');
-                
-                // اگر آنلاین است، فوراً همگام کن
-                if (navigator.onLine) {
-                    setTimeout(() => {
-                        meetings = meetings.map(m => m.id === newMeeting.id ? {...m, synced: true} : m);
-                        saveMeetings();
-                        renderMeetings();
-                        showToast('جلسه با موفقیت همگام شد');
-                    }, 600);
-                }
+                    : 'جلسه ذخیره شد');
             }
 
             saveMeetings();
             renderMeetings();
             closeModal();
+
+            // همگام‌سازی خودکار با ابر در صورت آنلاین بودن
+            if (navigator.onLine && cloudEnabled) {
+                syncMeetings();
+            }
         }
 
         function editMeeting(id) {
